@@ -1,3 +1,25 @@
 #root {
-  color: red;
+  color: black;
+  display: flex;
+  flex-wrap: wrap;
+}
+.episode-card{
+  
+  width: 30%;
+  border: 1px solid black;
+  margin: 10px;
+}
+.episode-card h2 {
+  border: 1px solid black;
+  text-align: center;
+  margin: 0;
+}
+.episode-card img {
+  padding: 10px;
+  display: block;
+  margin: 0 auto;
+}
+.episode-card p {
+  text-align: justify;
+  padding: 10px;
 }
