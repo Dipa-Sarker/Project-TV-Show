@@ -1,3 +1,29 @@
 #root {
-  color: red;
+  color: black;
+  display: flex;
+  flex-wrap: wrap;
+  background-color: grey;
+}
+.episode-card {
+  width: 30%;
+  border: 1px solid black;
+  border-radius: 10px;
+  margin: 10px;
+  background-color: white;
+  padding: 10px;
+}
+.episode-card h2 {
+  border: 1px solid black;
+  border-radius: 10px;
+  text-align: center;
+  margin: 0;
+}
+.episode-card img {
+  padding: 10px;
+  display: block;
+  margin: 0 auto;
+}
+.episode-card p {
+  text-align: justify;
+  padding: 10px;
 }
