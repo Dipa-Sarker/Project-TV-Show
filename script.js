@@ -30,5 +30,6 @@ function makePageForEpisodes(episodeList) {
     rootElem.append(card);
   }
 }
+console.log("hello");
 
 window.onload = setup;
