@@ -12,7 +12,7 @@
   background-color: white;
   padding: 10px;
 }
-.episode-card h2 {
+episodeTitle {
   border: 1px solid black;
   border-radius: 10px;
   text-align: center;
@@ -23,7 +23,7 @@
   display: block;
   margin: 0 auto;
 }
-.episode-card p {
+.episode-card description {
   text-align: justify;
   padding: 10px;
 }
