@@ -14,7 +14,7 @@ function makePageForEpisodes(episodeList) {
     const episodeName = document.createElement("h2");
     episodeName.textContent =
       episode.name +
-      "-" +
+      " - " +
       "S" +
       episode.season.toString().padStart(2, "0") +
       "E" +
