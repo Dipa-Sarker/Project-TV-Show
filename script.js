@@ -23,6 +23,29 @@ function makePageForEpisodes(episodeList) {
     card.append(summary);
     rootElem.append(card);
   }
+  const searchInput = document.getElementById("search-input");
+  const episodeCount = document.getElementById("episode-count");
+  const episodeCards = document.querySelectorAll(".episode-card");
+
+  episodeCount.textContent = `${episodeList.length} episodes`;
+
+  searchInput.addEventListener("input", function () {
+    const searchTerm = searchInput.value.toLowerCase();
+    let matchingEpisodes = 0;
+
+    episodeList.forEach(function (episode, index) {
+      const card = episodeCards[index];
+
+      if (episode.name.toLowerCase().includes(searchTerm)) {
+        card.style.display = "";
+        matchingEpisodes++;
+      } else {
+        card.style.display = "none";
+      }
+    });
+
+    episodeCount.textContent = `${matchingEpisodes} episodes`;
+  });
 }
 
 window.onload = setup;

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -6,19 +6,22 @@
     <title>TV Show Project | Dipa Sarker (Dipa-Sarker)</title>
     <link href="style.css" rel="stylesheet" />
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
   </head>
 
   <body>
-    <main id="root">
-    </main>
+    <div class="search-container">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="search-input" placeholder="Search episodes..." />
+    </div>
+    <p id="episode-count"></p>
+    <main id="root"></main>
+    Data originally provided by
+    <a href="https://www.tvmaze.com/" target="_blank"> TVMaze.com </a>
 
-    <p>
-      Data originally provided by
-      <a href="https://www.tvmaze.com/" target="_blank">
-        TVMaze.com
-      </a>
-    </p>
-    
     <!-- Loads a provided function called getAllEpisodes() which returns all episodes -->
     <script src="episodes.js"></script>
 
