@@ -44,7 +44,7 @@ function makePageForEpisodes(episodeList) {
       }
     });
 
-    episodeCount.textContent = `${matchingEpisodes} episodes`;
+    episodeCount.textContent = `${matchingEpisodes} episodes found`;
   });
 }
 
