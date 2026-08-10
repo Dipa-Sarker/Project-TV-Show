@@ -12,7 +12,7 @@ function makePageForEpisodes(episodeList) {
     const card = document.createElement("section");
     card.classList.add("episode-card");
     const episodeName = document.createElement("h2");
-    episodeName.textContent = `${episode.name} - S${String(episode.season).padStart(2, "0")}E${String(episode.season).padStart(2, "0")}`;
+    episodeName.textContent = `${episode.name} - S${String(episode.season).padStart(2, "0")}E${String(episode.number).padStart(2, "0")}`;
     card.append(episodeName);
     const image = document.createElement("img");
     image.src = episode.image.medium;
