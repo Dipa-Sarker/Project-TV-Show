@@ -16,7 +16,7 @@ function makePageForEpisodes(episodeList) {
     card.append(episodeName);
     const image = document.createElement("img");
     image.src = episode.image.medium;
-    image.alt = `Episode image for ${episode.name}`;
+    image.alt = `Episode image for ${episode.name}`; 
     card.append(image);
     const summary = document.createElement("p");
     summary.innerHTML = episode.summary;
