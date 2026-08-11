@@ -27,3 +27,17 @@
   text-align: justify;
   padding: 10px;
 }
+.search-container {
+  position: relative;
+}
+
+.search-container i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#search-input {
+  padding-left: 40px;
+}
