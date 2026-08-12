@@ -1,8 +1,29 @@
 // You can edit ALL of the code here
+
+const episodesLink = "https://api.tvmaze.com/shows/82/episodes"; //this link will use for fetch
+
+const message = document.getElementById("message"); //for loading message
+
 function setup() {
-  const allEpisodes = getAllEpisodes();
-  console.log(allEpisodes);
-  makePageForEpisodes(allEpisodes);
+  message.textContent = "Loading episodes..."; //shows this message when episode data is loading
+  const fetchEpisodes = async () => {
+    //store fetchEpisodes function in a variable
+    const response = await fetch(episodesLink); //wait for the server to respond
+    return await response.json(); //API sends the data in JSON format
+  };
+
+  fetchEpisodes()
+    .then((episodes) => {
+      //success handling
+
+      makePageForEpisodes(episodes); //now data is a normal JavaScript array/object
+      message.textContent = ""; // loading message disappears after episode arrives
+      console.log(episodes);
+    })
+    .catch(() => {
+      //error handling
+      message.textContent = "Error: Data not found. Try again later...";
+    });
 }
 
 function makePageForEpisodes(episodeList) {
@@ -11,6 +32,8 @@ function makePageForEpisodes(episodeList) {
 
   // Selector implemented
   const selectEpisodeList = document.createElement("select");
+  selectEpisodeList.id = "episode-selector";
+
   //back button added
   const backButton = document.createElement("button");
   backButton.textContent = "Back to all episodes";
@@ -19,7 +42,9 @@ function makePageForEpisodes(episodeList) {
   for (const episode of episodeList) {
     const option = document.createElement("option");
 
-    option.textContent = `S${String(episode.season).padStart(2, "0")}E${String(episode.number).padStart(2, "0")} - ${episode.name}`;
+    option.textContent = `S${String(episode.season).padStart(2, "0")}E${String(
+      episode.number
+    ).padStart(2, "0")} - ${episode.name}`;
 
     option.value = episode.id;
 
@@ -28,6 +53,10 @@ function makePageForEpisodes(episodeList) {
 
   // Adding dropdown menu beside the search box
   const searchContainer = document.querySelector(".search-container");
+  const episodeLabel = document.createElement("label"); //for showing label beside dropdown
+  episodeLabel.textContent = "Select an episode:";
+  episodeLabel.htmlFor = "episode-selector";
+  searchContainer.appendChild(episodeLabel);
   searchContainer.appendChild(selectEpisodeList);
   searchContainer.appendChild(backButton);
 
@@ -37,12 +66,14 @@ function makePageForEpisodes(episodeList) {
     card.classList.add("episode-card");
 
     const episodeName = document.createElement("h2");
-    episodeName.textContent = `${episode.name} - S${String(episode.season).padStart(2, "0")}E${String(episode.number).padStart(2, "0")}`;
+    episodeName.textContent = `${episode.name} - S${String(
+      episode.season
+    ).padStart(2, "0")}E${String(episode.number).padStart(2, "0")}`;
     card.append(episodeName);
 
     const image = document.createElement("img");
     image.src = episode.image.medium;
-    image.alt = `Episode image for ${episode.name}`; 
+    image.alt = `Episode image for ${episode.name}`;
     card.append(image);
 
     const summary = document.createElement("p");
@@ -94,7 +125,10 @@ function makePageForEpisodes(episodeList) {
     backButton.style.display = "";
   }); // Back to all episodes
   backButton.addEventListener("click", function () {
-    location.reload();
+    backButton.style.display = "none"; // hides the Back button
+    for (const card of episodeCards) {
+      card.style.display = ""; // shows all episode cards again
+    }
   });
 }
 

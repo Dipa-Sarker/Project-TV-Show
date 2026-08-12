@@ -44,7 +44,7 @@
 
 #search-input,
 .search-container select {
-  background-color: #ffffff;
+  background-color: gainsboro;
   color: #111111;
   border: 1px solid #d9d9d9;
   border-radius: 6px;
@@ -53,6 +53,7 @@
 
 #search-input {
   padding-left: 40px;
+  border: 1px solid black;
 }
 
 .search-container select {
