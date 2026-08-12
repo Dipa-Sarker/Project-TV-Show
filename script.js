@@ -32,6 +32,8 @@ function makePageForEpisodes(episodeList) {
 
   // Selector implemented
   const selectEpisodeList = document.createElement("select");
+  selectEpisodeList.id = "episode-selector";
+
   //back button added
   const backButton = document.createElement("button");
   backButton.textContent = "Back to all episodes";
@@ -51,6 +53,10 @@ function makePageForEpisodes(episodeList) {
 
   // Adding dropdown menu beside the search box
   const searchContainer = document.querySelector(".search-container");
+  const episodeLabel = document.createElement("label"); //for showing label beside dropdown
+  episodeLabel.textContent = "Select an episode:";
+  episodeLabel.htmlFor = "episode-selector";
+  searchContainer.appendChild(episodeLabel);
   searchContainer.appendChild(selectEpisodeList);
   searchContainer.appendChild(backButton);
 
@@ -120,9 +126,9 @@ function makePageForEpisodes(episodeList) {
   }); // Back to all episodes
   backButton.addEventListener("click", function () {
     backButton.style.display = "none"; // hides the Back button
-   for (const card of episodeCards) {
-    card.style.display = ""; // shows all episode cards again
-}
+    for (const card of episodeCards) {
+      card.style.display = ""; // shows all episode cards again
+    }
   });
 }
 
