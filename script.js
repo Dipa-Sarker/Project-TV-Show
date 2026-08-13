@@ -117,7 +117,10 @@ function makePageForEpisodes(episodeList) {
     episodeList.forEach(function (episode, index) {
       const card = episodeCards[index];
 
-      if (episode.name.toLowerCase().includes(searchTerm)) {
+      if (
+        episode.name.toLowerCase().includes(searchTerm) ||
+        episode.summary.toLowerCase().includes(searchTerm)
+      ) {
         card.style.display = "";
         matchingEpisodes++;
       } else {
