@@ -12,6 +12,9 @@ const episodeCount = document.getElementById("episode-count");
 //stores episodes that we already fetched
 let cachedEpisodes = {};
 
+// Store all shows so they can be displayed again when the user returns to the shows listing, i.e front page
+let allShows = [];
+
 // Refactoring: store repeated error messages in constants
 const EPISODE_ERROR =
   "Error: Episodes not found. Try again later...";
@@ -35,6 +38,7 @@ function clearMessages() {
   episodesMessage.textContent = ""; // loading message disappears after episode arrives
   showsMessage.textContent = ""; // loading message disappears after show arrives
 }
+
 //==================== SETUP ====================
 async function setup() {
   episodesMessage.textContent = "Loading episodes..."; //shows this message when episode data is loading
@@ -43,7 +47,9 @@ async function setup() {
   try {
     //fetch the shows
     const showsResponse = await fetch(showsLink);
-    const shows = await showsResponse.json(); //API sends the data in JSON format
+    const shows = await showsResponse.json(); //API sends the data in JSON format then 
+    // shows data is a normal Javascript object
+    console.log(shows[0]);
 
     // Sort shows alphabetically, ignoring case
     shows.sort(function (show1, show2) {
@@ -52,11 +58,9 @@ async function setup() {
       });
     });
 
-    makeShowSelector(shows); //now the shows data is a normal Javascript object
+    makeShowSelector(shows); 
 
-    // Load the first show's episodes when the page loads
-    const firstShowId = shows[0].id;
-    await loadEpisodes(firstShowId);
+    makePageForShows(shows); //Display all TV shows as cards on the front page
 
     clearMessages();
 
@@ -65,7 +69,62 @@ async function setup() {
     episodesMessage.textContent = EPISODE_ERROR;
     showsMessage.textContent = SHOW_ERROR;
   }
+
+  allShows = shows; // Save the fetched shows for later use (e.g. Back to Shows button)
 }
+
+// ==================== DISPLAY SHOWS ON THE FRONT PAGE ====================
+function makePageForShows(showList) {
+  rootElem.innerHTML = "";
+
+  //creating show cards for FRONT PAGE
+  for (const show of showList) {
+    const card = document.createElement("section");
+    card.classList.add("show-card");
+
+    const showName = document.createElement("h2");
+    showName.textContent = show.name;
+
+    showName.style.cursor = "pointer"; //shows hand cursor when mouse is over the show name; tells the user, you can click this
+
+    showName.addEventListener("click", async function () { //when the user clicks show name, Load that show's episodes
+      await loadEpisodes(show.id);
+    });
+
+    const image = document.createElement("img"); //6 elements according to requirement 1
+    image.src = show.image.medium;
+    image.alt = `Show image for ${show.name}`;
+
+    const genres = document.createElement("p");
+    genres.textContent = `Genres: ${show.genres.join(", ")}`;
+
+    const status = document.createElement("p");
+    status.textContent = `Status: ${show.status}`;
+
+    const rating = document.createElement("p");
+    rating.textContent = `Rating: ${show.rating.average}`;
+
+    const runtime = document.createElement("p");
+    runtime.textContent = `Runtime: ${show.runtime} minutes`;
+
+    const summary = document.createElement("div");
+    summary.innerHTML = show.summary;
+
+card.append( //add all contents inside the card
+  showName,
+  image,
+  genres,
+  status,
+  rating,
+  runtime,
+  summary
+);
+
+    rootElem.append(card); //add the completed card inside the page container (root) /display the finished card on the page
+  }
+}
+
+
 
 
 // ==================== LOAD EPISODES ====================
@@ -101,7 +160,7 @@ async function loadEpisodes(showId) {
 // ==================== DISPLAY EPISODES ====================
 function makePageForEpisodes(episodeList) {
   rootElem.innerHTML = ""; //This is so that it refreshes everytime we choose a new show and want to see new episodes
-  const episodeCards = [];
+  const episodeCards = []; //this will further use for episode search, episode selector, show all episodes button
 
   // episodeSelector implemented
   // const selectEpisodeList = document.createElement("select"); // we need to move this out of makepageforepisodes because it would append the same episodes each time if we don
@@ -126,7 +185,7 @@ function makePageForEpisodes(episodeList) {
     card.append(summary);
 
     episodeCards.push(card);
-    rootElem.append(card);
+    rootElem.append(card); //display card on the page
   }
 
   // ==================== SEARCH ====================
@@ -196,11 +255,17 @@ function makeEpisodeSelector(episodeList, episodeCards) {
   const backButton = document.createElement("button");
   backButton.textContent = "Show all episodes";
   backButton.id = "back-button";
+
+  //create back to show button
+  const backToShowButton = document.createElement("button");
+  backToShowButton.textContent = "Show all shows";
+  backToShowButton.id = "back-to-shows-button";
   
   // Add everything to the container
   episodeContainer.appendChild(episodeLabel);
   episodeContainer.appendChild(selectEpisodeList);
   episodeContainer.appendChild(backButton);
+  episodeContainer.appendChild(backToShowButton); //newly added for back to show
 
   // ==================== EPISODE SELECTOR ====================
   // What happens when an episode is selected
@@ -234,6 +299,8 @@ function makeEpisodeSelector(episodeList, episodeCards) {
 
     backButton.style.display = "none";
   });
+
+
 }
 
 // ==================== SHOW SELECTOR ====================
