@@ -122,7 +122,6 @@ function makePageForShows(showList) {
   // User is currently viewing the shows listing on front page
   currentView = "shows";
   
-
   rootElem.innerHTML = "";
 
   //creating show cards for FRONT PAGE
@@ -157,19 +156,45 @@ function makePageForShows(showList) {
 
     const summary = document.createElement("div");
     summary.innerHTML = show.summary;
+    
+    
+    
+const showInfo = document.createElement("div");
+showInfo.classList.add("show-info");
 
-card.append( //add all contents inside the card
-  showName,
-  image,
+showInfo.append(
+  rating,
   genres,
   status,
-  rating,
-  runtime,
-  summary
+  runtime
+);
+
+summary.classList.add("summary");
+
+card.append(
+  showName,
+  image,
+  summary,
+  showInfo
 );
 
     rootElem.append(card); //add the completed card inside the page container (root) /display the finished card on the page
   }
+
+  // Hide episode controls
+  const episodeContainer = document.getElementById("episode-container");
+
+  if (episodeContainer) {
+    episodeContainer.style.display = "none";
+  }
+
+  // Show show selector
+  const showContainer = document.getElementById("show-container");
+
+  if (showContainer) {
+    showContainer.style.display = "";
+  }
+
 }
 
 
@@ -249,31 +274,23 @@ function makePageForEpisodes(episodeList) {
     episodeCards.push(card);
     rootElem.append(card); //display card on the page
   }
+  
+// Hide show selector
+ const showContainer = document.getElementById("show-container");
 
-  // ==================== SEARCH ====================
-  /*searchInput.addEventListener("input", function () {
+  if (showContainer) {
+    showContainer.style.display = "none";
+  }
 
-    const searchTerm = searchInput.value.toLowerCase();
-    let matchingEpisodes = 0;
+  // Show episode controls
+  const episodeContainer = document.getElementById("episode-container");
 
-    episodeList.forEach(function (episode, index) {
-      const card = episodeCards[index];
-
-      if (
-        episode.name.toLowerCase().includes(searchTerm) ||
-        episode.summary.toLowerCase().includes(searchTerm)
-      ) {
-        card.style.display = "";
-        matchingEpisodes++;
-      } else {
-        card.style.display = "none";
-      }
-    });
-
-    episodeCount.textContent = `Displaying ${matchingEpisodes}/${episodeList.length} episodes`;
-  }); */
+  if (episodeContainer) {
+    episodeContainer.style.display = "";
+  }
 
   return episodeCards; 
+  
 } 
 
 // ==================== MAKE EPISODE SELECTOR ====================
@@ -368,6 +385,10 @@ function makeEpisodeSelector(episodeList, episodeCards) {
   episodeCount.textContent = ""; //clear episode count
 
   makePageForShows(allShows); //display all TV shows again on front page
+  makeShowSelector(allShows);
+  if (episodeContainer) {
+  episodeContainer.style.display = "none";
+}
 });
 }
 
