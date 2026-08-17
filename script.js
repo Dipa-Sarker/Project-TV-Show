@@ -1,53 +1,63 @@
 // You can edit ALL of the code here
 
-const showsLink = "https://api.tvmaze.com/shows";
+const showsLink = "https://api.tvmaze.com/shows"; // TVMaze API endpoint that returns all TV shows
 
-const episodesMessage = document.getElementById("message1"); //for loading message
-const showsMessage = document.getElementById("message2");
-const searchContainer = document.querySelector(".search-container");
-const rootElem = document.getElementById("root");
-const searchInput = document.getElementById("search-input");
-const episodeCount = document.getElementById("episode-count");
-const searchLabel = document.getElementById("search-label");
-const showCount = document.getElementById("show-count");
+const episodesMessage = document.getElementById("message1"); // Element used to display episode loading/error messages
+const showsMessage = document.getElementById("message2"); // Element used to display show loading/error messages
+const searchContainer = document.querySelector(".search-container"); // Container that holds search input and dropdowns
+const rootElem = document.getElementById("root"); // Main container where show cards or episode cards are displayed
+const searchInput = document.getElementById("search-input"); // Search box used for both show search and episode search
+const episodeCount = document.getElementById("episode-count"); // Displays episode filtering count
+// Example: Displaying 5/73 episodes
+const searchLabel = document.getElementById("search-label"); // Label displayed on the shows page
+// Example: "Filtering for"
+const showCount = document.getElementById("show-count"); // Displays number of matching shows
+// Example: Found 12 shows
 
-//stores episodes that we already fetched
+
+//Stores episodes that we already fetched from the API
+// Key = showId
+// Value = array of episodes
+// Prevents fetching the same show twice
 let cachedEpisodes = {};
 
-  // Store all shows so they can be displayed again when the user returns to the shows listing, i.e front page
+// Store all shows fetched during setup(),so they can be displayed again when the user 
+// returns to the shows listing, i.e front page
 let allShows = [];
 
 // Tracks whether the user is viewing shows or episodes; on front page or 2nd page
 let currentView = "shows";
 
 // Store the episodes of the currently selected show
+// Used for searching and filtering episodes
 let currentEpisodes = [];
 
-// Refactoring: store repeated error messages in constants
+// Shared error message shown when episode fetch fails
 const EPISODE_ERROR =
   "Error: Episodes not found. Try again later...";
+// Shared error message shown when show fetch fails
 const SHOW_ERROR =
   "Error: Show not found. Try again later...";
 
-// Refactoring: reusable helper for episode codes
+// Reusable helper function for episode codes, Example: season: 1, episode: 1 -> S01E01
 function formatEpisodeCode(episode) {
   return `S${String(episode.season).padStart(2, "0")}E${String(
     episode.number
   ).padStart(2, "0")}`;
 }
 
-// Refactoring: reusable helper for episode URL
+// Reusable helper function which creates the API URL for a specific show's episodes
 function getEpisodeUrl(showId) {
   return `https://api.tvmaze.com/shows/${showId}/episodes`;
 }
 
-// Refactoring: reusable helper for clearing messages
+//Reusable helper function for removing loading and error messages from the page
 function clearMessages() {
-  episodesMessage.textContent = ""; // loading message disappears after episode arrives
-  showsMessage.textContent = ""; // loading message disappears after show arrives
+  episodesMessage.textContent = ""; // loading/error message disappears after episode arrives
+  showsMessage.textContent = ""; // loading/error message disappears after show arrives
 }
 
-// Helper function: Search TV shows by name, genre or summary and return only the matching shows
+// Reusable helper function: Search TV shows by name, genre or summary and return only the matching shows
 function searchShows(searchTerm, allShows) {
   const matchingShows = [];
   searchTerm = searchTerm.toLowerCase();
@@ -59,7 +69,7 @@ function searchShows(searchTerm, allShows) {
   return matchingShows; // returns an array containing only the matching shows
 }
 
-// Helper function: Search episodes by name or summary and return only the matching episodes
+// Reusable helper function: Search episodes by name or summary and return only the matching episodes
 function searchEpisodes(searchTerm, currentEpisodes) {
   const matchingEpisodes = [];
   searchTerm = searchTerm.toLowerCase();
@@ -73,38 +83,38 @@ function searchEpisodes(searchTerm, currentEpisodes) {
 
 
 //==================== SETUP ====================
+// Runs once when the page loads and Fetches all TV shows from the API
 async function setup() {
   episodesMessage.textContent = "Loading episodes..."; //shows this message when episode data is loading
   showsMessage.textContent = "Loading shows..."; //shows this message when shows data is loading
 
   try {
-    //fetch the shows
-    const showsResponse = await fetch(showsLink);
-    const shows = await showsResponse.json(); //API sends the data in JSON format then 
-    // shows data is a normal Javascript object
-    allShows = shows; // Save the fetched shows for later use (e.g. Back to Shows button)
+    // Try to fetch and display show data. If anything fails, moves to catch()
+    const showsResponse = await fetch(showsLink); // Send request to TVMaze API for all shows
+    const shows = await showsResponse.json(); //API sends the data in JSON format then convert 
+    // shows data is a normal Javascript array object
+    allShows = shows; // Store the fetched all shows globally so they can be 
+    // displayed again later(e.g. when user clicks "Show all shows")
 
-    // Sort shows alphabetically, ignoring case
+    // Sort shows alphabetically by name, ignoring case
     shows.sort(function (show1, show2) {
-      return show1.name.localeCompare(show2.name, undefined, {
-        sensitivity: "base",
-      });
+      return show1.name.toLowerCase().localeCompare(show2.name.toLowerCase()); // Convert both names to lowercase
+      // then compare alphabetically
     });
 
-    makeShowSelector(shows); 
+    makePageForShows(shows); // Display all TV shows as cards on the front page
+    makeShowSelector(shows); // Create dropdown containing all shows
 
-    makePageForShows(shows); //Display all TV shows as cards on the front page
+    // Data loaded successfully, remove loading messages
+    clearMessages(); 
 
-    clearMessages();
-
-  } catch (error) {
+  } catch (error) { // Runs if fetching or processing data fails, i.e error handling
     console.error(error);
-    //error handling
-    episodesMessage.textContent = EPISODE_ERROR;
+    
+    episodesMessage.textContent = EPISODE_ERROR; //shows error message
     showsMessage.textContent = SHOW_ERROR;
   }
 
-  
 }
 
 // ==================== DISPLAY SHOWS ON THE FRONT PAGE ====================
@@ -197,9 +207,6 @@ card.append(
 
 }
 
-
-
-
 // ==================== LOAD EPISODES ====================
 // Load episodes for a show
 async function loadEpisodes(showId) {
@@ -249,10 +256,6 @@ function makePageForEpisodes(episodeList) {
   rootElem.innerHTML = ""; //This is so that it refreshes everytime we choose a new show and want to see new episodes
   const episodeCards = []; //this will further use for episode search, episode selector, show all episodes button
 
-  // episodeSelector implemented
-  // const selectEpisodeList = document.createElement("select"); // we need to move this out of makepageforepisodes because it would append the same episodes each time if we don
-  // selectEpisodeList.id = "episode-selector";
-
   // Creating episode cards
   for (const episode of episodeList) {
     const card = document.createElement("section");
@@ -267,22 +270,22 @@ function makePageForEpisodes(episodeList) {
     image.alt = `Episode image for ${episode.name}`;
     card.append(image);
 
-    const summary = document.createElement("p");
+    const summary = document.createElement("div"); 
     summary.innerHTML = episode.summary;
     card.append(summary);
 
     episodeCards.push(card);
     rootElem.append(card); //display card on the page
   }
-  
-// Hide show selector
+
+ // Hide show selector
  const showContainer = document.getElementById("show-container");
 
   if (showContainer) {
     showContainer.style.display = "none";
   }
 
-  // Show episode controls
+ // Show episode controls
   const episodeContainer = document.getElementById("episode-container");
 
   if (episodeContainer) {
