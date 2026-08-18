@@ -15,7 +15,7 @@ const showCount = document.getElementById("show-count"); // Displays number of m
 // Example: Found 12 shows
 
 
-//Stores episodes that we already fetched from the API
+//Stores episodes that we already fetched from the API, Level 400
 // Key = showId
 // Value = array of episodes
 // Prevents fetching the same show twice
@@ -25,10 +25,10 @@ let cachedEpisodes = {};
 // returns to the shows listing, i.e front page
 let allShows = [];
 
-// Tracks whether the user is viewing shows or episodes; on front page or 2nd page
+// Tracks whether the user is viewing shows or episodes; i.e on front page or 2nd page
 let currentView = "shows";
 
-// Store the episodes of the currently selected show
+// Store the fetched episodes of the currently selected show
 // Used for searching and filtering episodes
 let currentEpisodes = [];
 
@@ -57,7 +57,7 @@ function clearMessages() {
   showsMessage.textContent = ""; // loading/error message disappears after show arrives
 }
 
-// Reusable helper function: Search TV shows by name, genre or summary and return only the matching shows
+// Level 500: Reusable helper function: Search TV shows by name, genre or summary and return only the matching shows
 function searchShows(searchTerm, allShows) {
   const matchingShows = [];
   searchTerm = searchTerm.toLowerCase();
@@ -69,13 +69,13 @@ function searchShows(searchTerm, allShows) {
   return matchingShows; // returns an array containing only the matching shows
 }
 
-// Reusable helper function: Search episodes by name or summary and return only the matching episodes
+// Level 200: Reusable helper function: Search episodes by name or summary and return only the matching episodes
 function searchEpisodes(searchTerm, currentEpisodes) {
-  const matchingEpisodes = [];
-  searchTerm = searchTerm.toLowerCase();
+  const matchingEpisodes = []; // Store episodes that match the search text
+  searchTerm = searchTerm.toLowerCase(); //convert search text to lowercase
   for(const episode of currentEpisodes){ //go through each episode from current episodes
     if(episode.name.toLowerCase().includes(searchTerm) || (episode.summary || "").toLowerCase().includes(searchTerm)){
-    matchingEpisodes.push(episode);
+    matchingEpisodes.push(episode); // Store matching episode into matchingEpisodes = [];
     }
   } 
   return matchingEpisodes; // returns an array containing only the matching episodes
@@ -88,7 +88,7 @@ async function setup() {
   episodesMessage.textContent = "Loading episodes..."; //shows this message when episode data is loading
   showsMessage.textContent = "Loading shows..."; //shows this message when shows data is loading
 
-  try {
+  try { //Level 400
     // Try to fetch and display show data. If anything fails, moves to catch()
     const showsResponse = await fetch(showsLink); // Send request to TVMaze API for all shows
     const shows = await showsResponse.json(); //API sends the data in JSON format then convert 
@@ -96,7 +96,7 @@ async function setup() {
     allShows = shows; // Store the fetched all shows globally so they can be 
     // displayed again later(e.g. when user clicks "Show all shows")
 
-    // Sort shows alphabetically by name, ignoring case
+    // Sort shows alphabetically by name, ignoring case, Level 400
     shows.sort(function (show1, show2) {
       return show1.name.toLowerCase().localeCompare(show2.name.toLowerCase()); // Convert both names to lowercase
       // then compare alphabetically
@@ -117,7 +117,268 @@ async function setup() {
 
 }
 
-// ==================== DISPLAY SHOWS ON THE FRONT PAGE ====================
+// ==================== Level-100 DISPLAY EPISODES ==================== 
+// Creates and displays episode cards for every episode
+// in the provided episode list
+function makePageForEpisodes(episodeList) {
+
+  // Hide the "Filtering for" label while viewing episodes on the 2nd page
+  searchLabel.style.display = "none";
+  //Hide the text "no. of shows found" after found filtered shows, on the 2nd page
+  showCount.textContent = "";
+
+  // change the search box to search episodes when viewing episodes on the 2nd page
+  searchInput.placeholder = "Search episodes...";
+
+  // user is currently viewing episodes on the 2nd page
+  currentView = "episodes";
+
+  rootElem.innerHTML = ""; //Clear the old episode cards before creating and displaying the new episode cards
+  const episodeCards = []; //this will further use for episode search, episode selector, show all episodes button
+
+  // Creating episode cards
+  for (const episode of episodeList) { // Create one card for one episode
+    const card = document.createElement("section"); // Create a card container for one episode
+    card.classList.add("episode-card"); // Add CSS class for episode styling
+
+    const episodeName = document.createElement("h2"); // Create heading for episode title
+    episodeName.textContent = `${episode.name} - ${formatEpisodeCode(episode)}`; // Display episode title and code
+    // Example: Winter Is Coming - S01E01
+    card.append(episodeName); // Add heading to episode card
+
+    const image = document.createElement("img"); // Create episode image element
+    image.src = episode.image?.medium || ""; // Use episode image if available
+    image.alt = `Episode image for ${episode.name}`; // Alternative text shown if image cannot load
+    card.append(image); //Add image to episode card
+
+    const summary = document.createElement("div"); // Create container for episode summary
+    summary.innerHTML = episode.summary; // Display episode summary returned by API
+    card.append(summary); // Add summary to episode card
+
+    episodeCards.push(card); // Save card reference for later filtering
+    rootElem.append(card); //display completes episode card on the page
+  }
+
+ // Hide show selector
+ const showContainer = document.getElementById("show-container");
+  if (showContainer) {
+    showContainer.style.display = "none";
+  }
+
+ // Show episode controls
+  const episodeContainer = document.getElementById("episode-container");
+  if (episodeContainer) {
+    episodeContainer.style.display = "";
+  }
+
+  return episodeCards; 
+  
+} 
+
+// ==================== Level-200 MAKE EPISODE SELECTOR ====================
+//episode selector taken out of makepage for episodes
+function makeEpisodeSelector(episodeList, episodeCards) {
+
+  // Find the existing episode container
+  let episodeContainer = document.getElementById("episode-container");
+
+  // Create it only if it doesn't exist
+  if (!episodeContainer) {
+    episodeContainer = document.createElement("div");
+    episodeContainer.id = "episode-container";
+    searchContainer.append(episodeContainer);
+  }
+
+  // Clear the old episode selector before adding the new one
+  episodeContainer.innerHTML = "";
+
+  //rootElem.innerHTML = "" deletes old episode cards.
+  // currentCards is updated to point to the newly created cards.
+  let currentCards = episodeCards;
+
+  // Create a new episode selector dropdown
+  const selectEpisodeList = document.createElement("select");
+  selectEpisodeList.id = "episode-selector";
+ 
+  // Add episodes to the episode selector dropdown -level 200 /300
+  // Add episodes to the episode selector dropdown for the currently selected show
+  for (const episode of episodeList) {
+    const option = document.createElement("option");
+    option.textContent = `${formatEpisodeCode(episode)} - ${episode.name}`;
+    option.value = episode.id; //Each option stores its episode ID. i.e 4952
+    selectEpisodeList.append(option); //Add curent option to the dropdown
+  }
+
+  // Add dropdown to the page, create label, Level 200
+  const episodeLabel = document.createElement("label");
+  episodeLabel.textContent = "Select an episode: ";
+  episodeLabel.htmlFor = "episode-selector";
+  
+  //Create "show all episodes" button, Level 200
+  const backButton = document.createElement("button");
+  backButton.textContent = "Show all episodes";
+  backButton.id = "back-button";
+
+  //Create "back to show/Show all shows" button, Level 500
+  const backToShowButton = document.createElement("button");
+  backToShowButton.textContent = "Show all shows";
+  backToShowButton.id = "back-to-shows-button";
+  
+// Add all episode controls to the episode container
+  episodeContainer.append(
+  episodeLabel,
+  selectEpisodeList,
+  backButton,
+  backToShowButton
+);
+
+
+  // What happens when an episode is selected fron episode selector dropdown- Level 200/300
+  selectEpisodeList.addEventListener("change", function () {
+  const selectedId = Number(selectEpisodeList.value); //Store only selected ID from the all episodes 
+  // when the user selected an option from the dropdown
+
+  const selectedEpisode = episodeList.find(function (episode) { //Look through every episode. Level 200/300
+  //If episode.id equals selectedId, return that episode object.
+      return episode.id === selectedId;
+  });
+
+  // Clear any active search filter so we're working with the full list again
+   searchInput.value = "";
+
+  // Re-render(create & display) all episode cards fresh, and update currentCards so every
+  // other handler (like backButton) stays pointed at currentCards
+   currentCards = makePageForEpisodes(episodeList);
+
+
+  //Hide all episode cards. Level 200/300
+   for (const card of currentCards) {
+      card.style.display = "none";
+  }
+  
+   //For displaying selected episode card. Level 200/300
+    const index = episodeList.indexOf(selectedEpisode); //Store the index of selected card
+    currentCards[index].style.display = ""; //Display only the selected episode card
+   
+
+  });
+
+  // Shows all episodes again (Bonus part , Level 200)
+  backButton.addEventListener("click", function () {
+
+    //Re-render(create & display) all episode cards fresh, and update currentCards
+    currentCards = makePageForEpisodes(episodeList);
+
+     // Clear search as well
+    searchInput.value = "";
+
+    episodeCount.textContent =
+      `Displaying ${episodeList.length}/${episodeList.length} episodes`; // Displaying 73/73 episodes
+
+  });
+
+  // Reset episode controls and return to the shows listing on FRONT PAGE, Level 500
+  backToShowButton.addEventListener("click", function () { //user back to show button clicked
+  searchInput.value = ""; //clear episode search
+  episodeCount.textContent = ""; //clear episode count
+
+  makePageForShows(allShows); //display all TV shows again on front page
+  makeShowSelector(allShows); //Show selector becomes full again on front page
+}); 
+}
+
+// ==================== LEVEL 300- LOAD EPISODES BY FETCHING API ====================
+// Fetch episodes for the selected show from TVMaze API
+async function loadEpisodes(showId) { 
+
+//Clear input when switching between shows and episodes
+ searchInput.value = "";
+
+  // Check if we already fetched this show's episodes, Level 400
+  if (cachedEpisodes[showId]) {
+    const episodes = cachedEpisodes[showId];
+    currentEpisodes = episodes; // Save the episodes of the selected show for searching and filtering
+    const episodeCards = makePageForEpisodes(episodes);
+    makeEpisodeSelector(episodes, episodeCards);
+
+    return episodeCards;
+  }
+
+  try { //Level-300 / If not fetched, i.e first time loading
+    const response = await fetch(getEpisodeUrl(showId)); // Request episode data from TVMaze API
+    const episodes = await response.json(); // Convert JSON format into JavaScript objects
+    currentEpisodes = episodes; // Stored the fetched episodes of the selected show for searching and filtering
+    
+    // Store the episodes so we don't fetch the same URL again
+    cachedEpisodes[showId] = episodes;
+
+    // fill the episode dropdown, Level-300
+    const episodeCards = makePageForEpisodes(episodes); // Display episode cards on the page
+    makeEpisodeSelector(episodes, episodeCards); // Create episode selector dropdown
+
+    return episodeCards; //Returned created card
+  } catch (error) { // Error handling; Display error message if fetch fails. Level 300
+    episodesMessage.textContent = EPISODE_ERROR;
+  }
+}
+
+// ==================== Level 400 SHOW SELECTOR ====================
+// Create dropdown containing all available shows
+function makeShowSelector(shows) {
+
+// Find the existing show container, show container keeps show selector dropdown and show dropdown label
+let showContainer = document.getElementById("show-container");
+
+// Create it only if show container doesn't exist, Level 400
+if (!showContainer) {
+  showContainer = document.createElement("div");
+  showContainer.id = "show-container";
+  searchContainer.append(showContainer); //Add the show container in to the search container
+}
+
+// Clear old show from dropdown before showing a new show
+showContainer.innerHTML = "";
+
+//Create new show dropdown for show list, Level 400
+  const selectShowList = document.createElement("select"); 
+  selectShowList.id = "show-selector";
+
+  const showLabel = document.createElement("label"); //Create show dropdown label
+  showLabel.textContent = "Select a show: ";
+  showLabel.htmlFor = "show-selector";
+
+  //Add entries to the dropdown, Level 400
+  shows.forEach((show) => { //Create option for each show from all shows in dropdown
+    const option = document.createElement("option");
+
+    option.textContent = show.name; //Set each show text
+    option.value = show.id; //Store each show ID
+
+    selectShowList.append(option); //Add option to the dropdown
+  });
+
+  //What happens when a user clicks one show in dropdown, Level 400
+  selectShowList.addEventListener("change", async () => {
+    const showId = Number(selectShowList.value); //Get the selected show ID
+
+      searchInput.value = ""; //Clear the old search when switching shows
+      episodeCount.textContent = ""; //Clear the previous episode count
+
+    episodesMessage.textContent = "Loading episodes..."; //Show this message when episodes data is loading for a
+    //selected show. Level 300 / 400
+
+    // Load episodes using the cache, Level 400
+    await loadEpisodes(showId);
+
+    episodesMessage.textContent = ""; // Remove loading message once data arrives. Level 300 /400
+  });
+
+  // Add the show label and show selector dropdown inside the show container, Level 400
+  showContainer.append(showLabel, selectShowList); 
+}
+
+// ==================== LEVEL 500 DISPLAY SHOWS ON THE FRONT PAGE ====================
+// Create and display show cards on the front page
 function makePageForShows(showList) {
   
   // Show the "Filtering for" label on the shows listing page, i.e front page
@@ -132,23 +393,24 @@ function makePageForShows(showList) {
   // User is currently viewing the shows listing on front page
   currentView = "shows";
   
-  rootElem.innerHTML = "";
+  rootElem.innerHTML = ""; // Clear any existing content before displaying show cards
 
-  //creating show cards for FRONT PAGE
-  for (const show of showList) {
+  //Creating show cards for FRONT PAGE
+  for (const show of showList) { //Creates one card per show
     const card = document.createElement("section");
     card.classList.add("show-card");
 
-    const showName = document.createElement("h2");
+    const showName = document.createElement("h2"); 
     showName.textContent = show.name;
 
-    showName.style.cursor = "pointer"; //shows hand cursor when mouse is over the show name; tells the user, you can click this
-
+    showName.style.cursor = "pointer"; //Shows hand cursor when mouse is over the show name; tells the user, you can click this
+   
+    //What happens when user clicks on a show name
     showName.addEventListener("click", async function () { //when the user clicks show name, Load that show's episodes
       await loadEpisodes(show.id);
     });
 
-    const image = document.createElement("img"); //6 elements according to requirement 1
+    const image = document.createElement("img"); //6 show information according to requirement 1
     image.src = show.image.medium;
     image.alt = `Show image for ${show.name}`;
 
@@ -166,307 +428,65 @@ function makePageForShows(showList) {
 
     const summary = document.createElement("div");
     summary.innerHTML = show.summary;
-    
-    
-    
-const showInfo = document.createElement("div");
-showInfo.classList.add("show-info");
 
-showInfo.append(
+    
+//For Organizing the show information nicely before displaying it on the front page, according to the
+// Level 500 given layout
+ 
+// Container for rating, genres, status and runtime
+const showInfo = document.createElement("div");
+showInfo.classList.add("show-info"); // Apply CSS styling to the show information section
+
+showInfo.append( // Add show details inside the showInfo container
   rating,
   genres,
   status,
   runtime
 );
 
-summary.classList.add("summary");
+summary.classList.add("summary"); // Apply CSS styling to the show summary section
 
-card.append(
+card.append( // Build the complete show card
   showName,
   image,
   summary,
   showInfo
 );
 
-    rootElem.append(card); //add the completed card inside the page container (root) /display the finished card on the page
+ rootElem.append(card); //Add the completed card inside the page container (root). Display the finished card on the page
   }
 
   // Hide episode controls
   const episodeContainer = document.getElementById("episode-container");
-
   if (episodeContainer) {
     episodeContainer.style.display = "none";
   }
 
   // Show show selector
   const showContainer = document.getElementById("show-container");
-
   if (showContainer) {
     showContainer.style.display = "";
   }
 
 }
 
-// ==================== LOAD EPISODES ====================
-// Load episodes for a show
-async function loadEpisodes(showId) {
-  // Check if we already fetched this show's episodes
-  if (cachedEpisodes[showId]) {
-    const episodes = cachedEpisodes[showId];
-    currentEpisodes = episodes; // Save the episodes of the selected show for searching and filtering
-    const episodeCards = makePageForEpisodes(episodes);
-    makeEpisodeSelector(episodes, episodeCards);
-
-    return episodeCards;
-  }
-
-  try {
-    const response = await fetch(getEpisodeUrl(showId));
-    const episodes = await response.json();
-    currentEpisodes = episodes; // Save the episodes of the selected show for searching and filtering
-    
-    // Store the episodes so we don't fetch the same URL again
-    cachedEpisodes[showId] = episodes;
-
-    // fill the episode dropdown
-    const episodeCards = makePageForEpisodes(episodes);
-    makeEpisodeSelector(episodes, episodeCards);
-
-    return episodeCards;
-  } catch (error) {
-    episodesMessage.textContent = EPISODE_ERROR;
-  }
-}
-
-
-// ==================== DISPLAY EPISODES ====================
-function makePageForEpisodes(episodeList) {
-
-  // Hide the "Filtering for" label while viewing episodes on the 2nd page
-  searchLabel.style.display = "none";
-  //Hide the text "no. of shows found" after found filtered shows, on the 2nd page
-  showCount.textContent = "";
-
-  // change the search box to search episodes when viewing episodes on the 2nd page
-  searchInput.placeholder = "Search episodes...";
-
-  // user is currently viewing episodes on the 2nd page
-  currentView = "episodes";
-
-  rootElem.innerHTML = ""; //This is so that it refreshes everytime we choose a new show and want to see new episodes
-  const episodeCards = []; //this will further use for episode search, episode selector, show all episodes button
-
-  // Creating episode cards
-  for (const episode of episodeList) {
-    const card = document.createElement("section");
-    card.classList.add("episode-card");
-
-    const episodeName = document.createElement("h2");
-    episodeName.textContent = `${episode.name} - ${formatEpisodeCode(episode)}`;
-    card.append(episodeName);
-
-    const image = document.createElement("img");
-    image.src = episode.image?.medium || ""; //
-    image.alt = `Episode image for ${episode.name}`;
-    card.append(image);
-
-    const summary = document.createElement("div"); 
-    summary.innerHTML = episode.summary;
-    card.append(summary);
-
-    episodeCards.push(card);
-    rootElem.append(card); //display card on the page
-  }
-
- // Hide show selector
- const showContainer = document.getElementById("show-container");
-
-  if (showContainer) {
-    showContainer.style.display = "none";
-  }
-
- // Show episode controls
-  const episodeContainer = document.getElementById("episode-container");
-
-  if (episodeContainer) {
-    episodeContainer.style.display = "";
-  }
-
-  return episodeCards; 
-  
-} 
-
-// ==================== MAKE EPISODE SELECTOR ====================
-//episode selector taken out of makepage for episodes
-function makeEpisodeSelector(episodeList, episodeCards) {
-
-  // Find the existing episode container
-  let episodeContainer = document.getElementById("episode-container");
-
-  // Create it only if it doesn't exist
-  if (!episodeContainer) {
-    episodeContainer = document.createElement("div");
-    episodeContainer.id = "episode-container";
-    searchContainer.appendChild(episodeContainer);
-  }
-
-  // Clear the old episode selector before adding the new one
-  episodeContainer.innerHTML = "";
-
-  // Create a new episode dropdown
-  const selectEpisodeList = document.createElement("select");
-  selectEpisodeList.id = "episode-selector";
- 
-  // add episodes for the currently selected show
-  for (const episode of episodeList) {
-    const option = document.createElement("option");
-
-    option.textContent = `${formatEpisodeCode(episode)} - ${episode.name}`;
-
-    option.value = episode.id;
-
-    selectEpisodeList.appendChild(option);
-  }
-
-  // Add dropdown to the page, create label
-  const episodeLabel = document.createElement("label");
-  episodeLabel.textContent = "Select an episode: ";
-  episodeLabel.htmlFor = "episode-selector";
-  
-  //create "show all" button
-  const backButton = document.createElement("button");
-  backButton.textContent = "Show all episodes";
-  backButton.id = "back-button";
-
-  //create "back to show" button
-  const backToShowButton = document.createElement("button");
-  backToShowButton.textContent = "Show all shows";
-  backToShowButton.id = "back-to-shows-button";
-  
-  // Add everything to the container
-  episodeContainer.appendChild(episodeLabel);
-  episodeContainer.appendChild(selectEpisodeList);
-  episodeContainer.appendChild(backButton);
-  episodeContainer.appendChild(backToShowButton); //newly added for back to show
-
-  // ==================== EPISODE SELECTOR ====================
-  // What happens when an episode is selected
-  selectEpisodeList.addEventListener("change", function () {
-    const selectedId = Number(selectEpisodeList.value);
-
-    const selectedEpisode = episodeList.find(function (episode) {
-      return episode.id === selectedId;
-    });
-
-    for (const card of episodeCards) {
-      card.style.display = "none";
-    }
-
-    const index = episodeList.indexOf(selectedEpisode);
-    episodeCards[index].style.display = "";
-    backButton.style.display = "";
-
-  });
-
-  // shows all episodes again
-  backButton.addEventListener("click", function () {
-    for (const card of episodeCards) {
-      card.style.display = ""; // shows all episode cards again
-    }
-     // Clear search as well
-    searchInput.value = "";
-
-    episodeCount.textContent =
-      `Displaying ${episodeList.length}/${episodeList.length} episodes`;
-
-    backButton.style.display = "none";
-  });
-
-  // Reset episode controls and return to the shows listing on FRONT PAGE
-  backToShowButton.addEventListener("click", function () { //user back to show button clicked
-  searchInput.value = ""; //clear episode search
-  episodeCount.textContent = ""; //clear episode count
-
-  makePageForShows(allShows); //display all TV shows again on front page
-  makeShowSelector(allShows);
-  if (episodeContainer) {
-  episodeContainer.style.display = "none";
-}
-});
-}
-
-// ==================== SHOW SELECTOR ====================
-//showSelector implemented
-function makeShowSelector(shows) {
-
-// Find the existing show container
-let showContainer = document.getElementById("show-container");
-
-// Create it only if it doesn't exist
-if (!showContainer) {
-  showContainer = document.createElement("div");
-  showContainer.id = "show-container";
-  searchContainer.appendChild(showContainer);
-}
-
-// Clear old dropdown before adding a new one
-showContainer.innerHTML = "";
-
-  const selectShowList = document.createElement("select");
-  selectShowList.id = "show-selector";
-
-  const showLabel = document.createElement("label");
-  showLabel.textContent = "Select a show: ";
-  showLabel.htmlFor = "show-selector";
-
-  shows.forEach((show) => {
-    const option = document.createElement("option");
-
-    option.textContent = show.name;
-    option.value = show.id;
-
-    selectShowList.appendChild(option);
-  });
-
-  selectShowList.addEventListener("change", async () => {
-    const showId = Number(selectShowList.value);
-
-     // Remember which show the user currently wants
-  selectedShowId = showId;
-      searchInput.value = "";
-      episodeCount.textContent = "";
-
-    episodesMessage.textContent = "Loading episodes...";
-
-    // Load episodes using the cache
-    await loadEpisodes(showId);
-
-    episodesMessage.textContent = "";
-  });
-
-  
-  // Add dropdown to the page
-  showContainer.appendChild(showLabel);
-  showContainer.appendChild(selectShowList);
-}
-
-// ==================== SEARCH FOR BOTH SHOWS & EPISODES (Globar search listener) ====================
+// ====================Level 200/ 500 SEARCH FOR BOTH SHOWS & EPISODES (Globar search listener) ==================== 
 // Run every time the user types in the search box
-searchInput.addEventListener("input", function () {
+  searchInput.addEventListener("input", function () {
 
-  const searchTerm = searchInput.value.toLowerCase(); // Get the current search text and convert it to lowercase
+  const searchTerm = searchInput.value; // Get the current search text
 
-
- if (currentView === "shows") { // If the user is on the shows listing page/ 2nd page
-    const matchingShows = searchShows(searchTerm, allShows); // Find all shows that match the search text
+ if (currentView === "shows") { // If the user is on the shows listing page/ front page, Level 500
+    const matchingShows = searchShows(searchTerm, allShows); // Find all shows that match the search text, Level 500
     makePageForShows(matchingShows); // Redisplay only the matching shows
-    makeShowSelector(matchingShows); //display only matching shows in dropdown
+    makeShowSelector(matchingShows); //Display only matching shows in dropdown
 }
 else if (currentView === "episodes") { // If the user is viewing episodes
     const matchingEpisodes = searchEpisodes(searchTerm, currentEpisodes); // Find all episodes that match the search text
     
     episodeCount.textContent =
-    `Displaying ${matchingEpisodes.length}/${currentEpisodes.length} episodes`;
+    `Displaying ${matchingEpisodes.length}/${currentEpisodes.length} episodes`; //For displaying text
+    // i.e Displaying 1/33 episodes
     
     makePageForEpisodes(matchingEpisodes); // Redisplay only the matching episodes
 }
